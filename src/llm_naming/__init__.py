@@ -122,7 +122,7 @@ Name:"""
     def _query_openai(self, prompt: str) -> str:
         """Query OpenAI API."""
         response = self.client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",  # Updated to available model
             messages=[
                 {
                     "role": "system",

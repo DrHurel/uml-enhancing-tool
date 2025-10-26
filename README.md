@@ -22,7 +22,8 @@ This tool processes UML diagrams in PlantUML format and identifies opportunities
 - ✅ **Formal Concept Analysis**: FCA4J integration with XML output parsing
 - ✅ **Hierarchical Concepts**: Multi-level lattice traversal for complex abstractions
 - ✅ **Inherited Feature Removal**: Automatically cleans up child classes
-- ✅ **AI-Powered Naming**: Semantic class names via OpenAI/Anthropic LLMs
+- ✅ **Intelligent Semantic Naming**: Pattern-based naming (no API required)
+- 🔧 **Optional LLM Naming**: OpenAI/Anthropic integration for enhanced naming
 
 ### Recent Enhancements (v1.1)
 - 🆕 **Improved Relevance Scoring**: Intent-focused formula prioritizing rich concepts (3+ attributes get 1.5x boost)
@@ -92,15 +93,19 @@ python main.py -i diagram.puml \
 
 ## Configuration
 
-### Environment Variables
+### Environment Variables (Optional)
 
-Create a `.env` file for API keys:
+LLM-based naming is **optional**. The tool includes intelligent fallback naming that produces semantic class names.
+
+If you want to use LLM naming, create a `.env` file:
 
 ```env
 OPENAI_API_KEY=sk-...
 # or
 ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+**Note**: The tool uses `gpt-4o-mini` for OpenAI. If you encounter quota errors, the fallback naming strategy provides excellent results automatically.
 
 ### FCA4J Setup
 
@@ -248,20 +253,27 @@ relevance_score = (0.4 * extent_score + 0.6 * intent_score) * intent_boost * 100
 
 ### 2. Semantic Naming Logic
 
-**LLM Mode** (when API available):
-- Analyzes classes + shared features
-- Identifies semantic concept (not just attribute names)
-- Returns meaningful names like "User", "Identifiable", "Named"
+The tool provides two naming strategies:
 
-**Fallback Mode** (intelligent pattern matching):
-```python
-if "password" + "email" + "login" in attributes:
-    return "AbstractUser"
-elif "id" field found:
-    return "AbstractIdentifiable"
-elif "nom" or "name" field found:
-    return "AbstractNamed"
-```
+**Intelligent Fallback Mode** (recommended, no API needed):
+- Analyzes attributes to identify semantic patterns
+- Pattern matching for common abstractions:
+  ```python
+  if "password" + "email" + "login" in attributes:
+      return "AbstractUser"           # Authentication concept
+  elif "id" field found:
+      return "AbstractIdentifiable"   # Entity with identity
+  elif "nom" or "name" field found:
+      return "AbstractNamed"          # Named/labeled entity
+  ```
+- Produces high-quality names without external dependencies
+- **Used by default when LLM unavailable or quota exceeded**
+
+**LLM Mode** (optional, requires API key):
+- Uses OpenAI `gpt-4o-mini` or Anthropic Claude
+- Analyzes classes + shared features semantically
+- Returns conceptual names (e.g., "User", "Identifiable", "Named")
+- Automatically falls back to intelligent mode on error
 
 ### 3. Inherited Feature Removal
 
@@ -300,6 +312,15 @@ uml-enhancing-tool/
 - **[CHANGELOG.md](CHANGELOG.md)**: Version history and updates
 
 ## Troubleshooting
+
+### LLM API Errors
+
+**Error: 404 "model not found"** or **429 "quota exceeded"**
+- The tool automatically uses intelligent fallback naming
+- Fallback produces excellent semantic names (AbstractUser, AbstractIdentifiable, etc.)
+- No action needed unless you specifically want LLM naming
+- To use LLM: Ensure API key is valid and has quota
+- OpenAI model: `gpt-4o-mini` (updated from deprecated `gpt-4`)
 
 ### Import Errors in Tests
 ```bash

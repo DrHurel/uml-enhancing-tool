@@ -110,3 +110,108 @@ class TestPlantUMLGenerator:
         with open(report, "r") as f:
             content = f.read()
             assert "Enhancement Report" in content
+
+    def test_deduplicate_abstract_class_names_no_duplicates(self):
+        """Test deduplication with no duplicate names."""
+        generator = PlantUMLGenerator()
+
+        abstract_classes = [
+            AbstractClass(
+                extent=["Class1", "Class2"],
+                intent=["method1()"],
+                suggested_name="Abstract1",
+                relevance_score=50.0,
+            ),
+            AbstractClass(
+                extent=["Class3"],
+                intent=["method2()"],
+                suggested_name="Abstract2",
+                relevance_score=60.0,
+            ),
+        ]
+
+        result = generator._deduplicate_abstract_class_names(abstract_classes)
+
+        assert len(result) == 2
+        assert result[0].suggested_name == "Abstract1"
+        assert result[1].suggested_name == "Abstract2"
+
+    def test_deduplicate_abstract_class_names_with_duplicates(self):
+        """Test deduplication with duplicate names - should merge by relevance."""
+        generator = PlantUMLGenerator()
+
+        abstract_classes = [
+            AbstractClass(
+                extent=["Class1", "Class2"],
+                intent=["method1()"],
+                suggested_name="Manager",
+                relevance_score=50.0,
+            ),
+            AbstractClass(
+                extent=["Class3", "Class4"],
+                intent=["method2()"],
+                suggested_name="Manager",
+                relevance_score=75.0,
+            ),
+            AbstractClass(
+                extent=["Class5"],
+                intent=["method3()"],
+                suggested_name="Manager",
+                relevance_score=60.0,
+            ),
+        ]
+
+        result = generator._deduplicate_abstract_class_names(abstract_classes)
+
+        # Should merge into single Manager with highest relevance (75.0)
+        assert len(result) == 1
+        assert result[0].suggested_name == "Manager"
+        assert result[0].relevance_score == 75.0
+        # Should contain all extents
+        assert set(result[0].extent) == {
+            "Class1",
+            "Class2",
+            "Class3",
+            "Class4",
+            "Class5",
+        }
+        # Should contain all intents
+        assert set(result[0].intent) == {"method1()", "method2()", "method3()"}
+
+    def test_deduplicate_abstract_class_names_mixed(self):
+        """Test deduplication with mix of unique and duplicate names."""
+        generator = PlantUMLGenerator()
+
+        abstract_classes = [
+            AbstractClass(
+                extent=["A"],
+                intent=["m1()"],
+                suggested_name="Unique",
+                relevance_score=50.0,
+            ),
+            AbstractClass(
+                extent=["B"],
+                intent=["m2()"],
+                suggested_name="Duplicate",
+                relevance_score=60.0,
+            ),
+            AbstractClass(
+                extent=["C"],
+                intent=["m3()"],
+                suggested_name="Duplicate",
+                relevance_score=70.0,
+            ),
+        ]
+
+        result = generator._deduplicate_abstract_class_names(abstract_classes)
+
+        assert len(result) == 2
+        names = [r.suggested_name for r in result]
+        assert "Unique" in names
+        assert "Duplicate" in names
+
+        # Find the merged duplicate
+        duplicate = next(r for r in result if r.suggested_name == "Duplicate")
+        assert set(duplicate.extent) == {"B", "C"}
+        assert set(duplicate.intent) == {"m2()", "m3()"}
+        assert duplicate.relevance_score == 70.0  # Higher score wins

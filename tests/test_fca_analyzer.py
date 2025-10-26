@@ -87,3 +87,62 @@ class TestFCAAnalyzer:
             data = json.load(f)
             assert len(data) == 1
             assert data[0]["relevance_score"] == 75.0
+
+    def test_calculate_relevance_scores_with_boost(self):
+        """Test relevance score calculation with intent boost."""
+        analyzer = FCAAnalyzer()
+
+        # Concept with 3+ intents should get 1.5x boost
+        analyzer.concepts = [
+            FormalConcept(extent={"A", "B"}, intent={"x", "y", "z", "w"}),  # 4 intents
+            FormalConcept(extent={"A", "B"}, intent={"x", "y"}),  # 2 intents
+        ]
+
+        analyzer._calculate_relevance_scores()
+
+        # First concept should have higher relevance due to boost
+        assert (
+            analyzer.concepts[0].relevance_score > analyzer.concepts[1].relevance_score
+        )
+
+    def test_filter_relevant_concepts_edge_cases(self):
+        """Test filtering with edge cases."""
+        analyzer = FCAAnalyzer()
+
+        analyzer.concepts = [
+            FormalConcept(
+                extent={"A"}, intent={"x"}, relevance_score=100.0
+            ),  # Too small extent
+            FormalConcept(
+                extent={"A", "B"}, intent={"x"}, relevance_score=10.0
+            ),  # Too low relevance
+            FormalConcept(
+                extent={"A", "B", "C"}, intent={"x", "y"}, relevance_score=75.0
+            ),  # Good
+        ]
+
+        relevant = analyzer.filter_relevant_concepts(
+            min_relevance=50.0, min_extent_size=2
+        )
+
+        assert len(relevant) == 1
+        assert len(relevant[0].extent) == 3
+
+    def test_analyze_with_xml_parsing(self, temp_output_dir):
+        """Test that analyze method handles XML parsing correctly."""
+        analyzer = FCAAnalyzer()
+
+        # Create a simple context
+        context_file = os.path.join(temp_output_dir, "simple.csv")
+        with open(context_file, "w") as f:
+            f.write("object,attr1,attr2\n")
+            f.write("A,True,True\n")
+            f.write("B,True,False\n")
+            f.write("C,True,True\n")
+
+        # Run analyze (will use fallback since FCA4J likely not available in test)
+        concepts = analyzer.analyze(context_file, temp_output_dir)
+
+        assert isinstance(concepts, list)
+        assert len(concepts) > 0
+        assert all(isinstance(c, FormalConcept) for c in concepts)

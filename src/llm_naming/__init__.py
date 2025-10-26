@@ -14,6 +14,7 @@ class AbstractClass:
     intent: List[str]  # Common attributes/features
     suggested_name: Optional[str] = None
     confidence: float = 0.0
+    relevance_score: float = 0.0  # FCA relevance score for fusion/prioritization
 
 
 class LLMNamingService:

@@ -1,0 +1,164 @@
+@startuml
+title "Redundant & Partially Divergent Functionality Across Multiple Concept Families (No Inheritance)"
+
+' === GROUP 1: CRUD Managers (mostly identical, with small differences) ===
+class UserManager {
+    +create(id: int, name: String)
+    +read(id: int)
+    +update(id: int, name: String)
+    +delete(id: int)
+    +findByName(name: String)
+}
+
+class CustomerManager {
+    +create(id: int, name: String)
+    +read(id: int)
+    +update(id: int, name: String)
+    +delete(id: int)
+}
+
+class EmployeeManager {
+    +create(id: int, name: String, department: String)
+    +read(id: int)
+    +update(id: int, name: String, department: String)
+    +delete(id: int)
+    +listAll(): List<Employee>
+}
+
+' === GROUP 2: Config Managers (identical core, but some add logging or backup) ===
+class AppConfigManager {
+    +loadConfig(filePath: String)
+    +saveConfig(filePath: String)
+    +resetDefaults()
+    +validateConfig(): boolean
+}
+
+class UIConfigManager {
+    +loadConfig(filePath: String)
+    +saveConfig(filePath: String)
+    +resetDefaults()
+    +validateConfig(): boolean
+    +previewConfig()
+}
+
+class SecurityConfigManager {
+    +loadConfig(filePath: String)
+    +saveConfig(filePath: String)
+    +resetDefaults()
+    +validateConfig(): boolean
+    +backupConfig(destination: String)
+}
+
+' === GROUP 3: Loggers (similar, but some add context or timestamp) ===
+class AppLogger {
+    +logInfo(message: String)
+    +logWarning(message: String)
+    +logError(message: String)
+}
+
+class AuditLogger {
+    +logInfo(message: String, user: String)
+    +logWarning(message: String, user: String)
+    +logError(message: String, user: String)
+    +exportLogs(filePath: String)
+}
+
+class SystemLogger {
+    +logInfo(message: String, timestamp: Date)
+    +logWarning(message: String, timestamp: Date)
+    +logError(message: String, timestamp: Date)
+}
+
+' === GROUP 4: Data Processors (same flow, but parameters vary) ===
+class CsvDataProcessor {
+    +loadData(file: String)
+    +transformData(ruleSet: String)
+    +exportData(destination: String)
+}
+
+class JsonDataProcessor {
+    +loadData(file: String)
+    +transformData(ruleSet: String)
+    +exportData(destination: String)
+    +validateSchema(schemaFile: String)
+}
+
+class XmlDataProcessor {
+    +loadData(file: String)
+    +transformData(ruleSet: String)
+    +exportData(destination: String)
+    +prettyPrint()
+}
+
+' === GROUP 5: Connection Managers (different params, method naming inconsistency) ===
+class DbConnectionManager {
+    +connect(url: String, user: String, password: String)
+    +disconnect()
+    +isConnected(): boolean
+    +reconnect()
+}
+
+class FtpConnectionManager {
+    +connect(url: String, user: String, password: String, port: int)
+    +disconnect()
+    +isConnected(): boolean
+}
+
+class ApiConnectionManager {
+    +connect(endpoint: String, token: String)
+    +disconnect()
+    +checkConnection(): boolean
+}
+
+' === GROUP 6: Service Handlers (overlaps CRUD and Config styles) ===
+class EmailService {
+    +send(to: String, subject: String, body: String)
+    +readInbox(): List<Email>
+    +delete(id: int)
+}
+
+class SmsService {
+    +send(to: String, message: String)
+    +readInbox(): List<Sms>
+    +delete(id: int)
+    +scheduleSend(to: String, message: String, delaySeconds: int)
+}
+
+class PushNotificationService {
+    +send(to: String, message: String)
+    +readInbox(): List<Notification>
+    +delete(id: int)
+}
+
+' === Relationships (loose associations only) ===
+UserManager --> AuditLogger : "logs activity"
+EmployeeManager --> SystemLogger : "uses"
+CustomerManager --> OrderManager : "creates orders"
+JsonDataProcessor --> DbConnectionManager : "saves to DB"
+CsvDataProcessor --> FtpConnectionManager : "uploads to FTP"
+SecurityConfigManager --> ApiConnectionManager : "secures connection"
+UIConfigManager --> AppLogger : "reports to"
+AuditLogger --> ReportManager : "sends logs"
+EmailService --> NotificationManager : "notifies user"
+
+' A few stubs for referenced classes
+class OrderManager {
+    +create(id: int, name: String)
+    +read(id: int)
+    +update(id: int, name: String)
+    +delete(id: int)
+}
+
+class ReportManager {
+    +generateReport(type: String)
+    +exportReport(path: String)
+}
+
+class NotificationManager {
+    +create(id: int, name: String)
+    +read(id: int)
+    +update(id: int, name: String)
+    +delete(id: int)
+}
+
+@enduml

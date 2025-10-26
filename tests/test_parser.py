@@ -129,3 +129,64 @@ Student "1..*" -- "1..*" Course
         assert rel.relationship_type == "association"
         assert rel.cardinality_source == "1"
         assert rel.cardinality_target == "*"
+
+    def test_parse_association_with_quoted_label(self):
+        """Test parsing association with quoted label."""
+        parser = PlantUMLParser()
+
+        plantuml = """
+        @startuml
+        class UserManager
+        class CustomerManager
+        UserManager --> CustomerManager : "coordinates"
+        @enduml
+        """
+
+        result = parser.parse(plantuml)
+
+        assert len(result["relationships"]) == 1
+        rel = result["relationships"][0]
+        assert rel.source == "UserManager"
+        assert rel.target == "CustomerManager"
+        assert rel.relationship_type == "association"
+        assert rel.label == "coordinates"
+
+    def test_parse_association_with_cardinality_and_label(self):
+        """Test parsing association with both cardinality and label."""
+        parser = PlantUMLParser()
+
+        plantuml = """
+        @startuml
+        class A
+        class B
+        A "1" --> "many" B : label
+        @enduml
+        """
+
+        result = parser.parse(plantuml)
+
+        assert len(result["relationships"]) == 1
+        rel = result["relationships"][0]
+        assert rel.cardinality_source == "1"
+        assert rel.cardinality_target == "many"
+        assert rel.label == "label"
+
+    def test_parse_bidirectional_association(self):
+        """Test parsing bidirectional association."""
+        parser = PlantUMLParser()
+
+        plantuml = """
+        @startuml
+        class X
+        class Y
+        X <-- Y
+        @enduml
+        """
+
+        result = parser.parse(plantuml)
+
+        assert len(result["relationships"]) == 1
+        rel = result["relationships"][0]
+        assert rel.source == "X"
+        assert rel.target == "Y"
+        assert rel.relationship_type == "association"

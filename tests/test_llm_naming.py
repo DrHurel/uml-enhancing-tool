@@ -104,3 +104,80 @@ class TestLLMNamingService:
             data = json.load(f)
             assert len(data) == 1
             assert data[0]["name"] == "Animal"
+
+    def test_initialization_with_anthropic(self):
+        """Test LLM service initialization with Anthropic provider."""
+        # Test that anthropic provider is accepted (initialization happens lazily)
+        service = LLMNamingService(provider="anthropic", api_key="fake-key")
+        assert service.provider == "anthropic"
+        assert service.api_key == "fake-key"
+
+    def test_initialization_missing_openai(self, monkeypatch):
+        """Test initialization fails gracefully when OpenAI not installed."""
+        service = LLMNamingService(provider="openai", api_key="test-key")
+
+        # Simulate ImportError for openai
+        def mock_import_error(*args, **kwargs):
+            raise ImportError("No module named 'openai'")
+
+        import builtins
+
+        real_import = builtins.__import__
+
+        def custom_import(name, *args, **kwargs):
+            if name == "openai":
+                raise ImportError("No module named 'openai'")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", custom_import)
+
+        with pytest.raises(ImportError, match="OpenAI package not installed"):
+            service._initialize_client()
+
+    def test_initialization_missing_anthropic(self, monkeypatch):
+        """Test initialization fails gracefully when Anthropic not installed."""
+        service = LLMNamingService(provider="anthropic", api_key="test-key")
+
+        # Simulate ImportError for anthropic
+        import builtins
+
+        real_import = builtins.__import__
+
+        def custom_import(name, *args, **kwargs):
+            if name == "anthropic":
+                raise ImportError("No module named 'anthropic'")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", custom_import)
+
+        with pytest.raises(ImportError, match="Anthropic package not installed"):
+            service._initialize_client()
+
+    def test_fallback_naming_patterns(self):
+        """Test various fallback naming patterns."""
+        service = LLMNamingService()
+
+        # Test with user-related intent
+        ac1 = AbstractClass(
+            extent=["UserManager", "AdminUser"], intent=["+login()", "+authenticate()"]
+        )
+        result1 = service._fallback_naming(ac1)
+        assert "User" in result1.suggested_name or "Auth" in result1.suggested_name
+
+        # Test with identifiable pattern
+        ac2 = AbstractClass(extent=["Product", "Order"], intent=["+getId()"])
+        result2 = service._fallback_naming(ac2)
+        assert result2.suggested_name is not None
+
+    def test_abstract_class_with_relevance_score(self):
+        """Test AbstractClass with relevance_score field."""
+        ac = AbstractClass(
+            extent=["A", "B"],
+            intent=["m1()"],
+            suggested_name="Test",
+            confidence=0.8,
+            relevance_score=75.0,
+        )
+
+        assert ac.relevance_score == 75.0
+        assert ac.confidence == 0.8

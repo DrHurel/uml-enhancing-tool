@@ -281,12 +281,16 @@ class UMLEnhancementPipeline:
         output_dir = os.path.join(self.config.output_dir, f"fca_{timestamp}")
         return self.fca_analyzer.analyze(context_file, output_dir)
 
-    def _step_create_abstract_classes(self, concepts) -> list:
+    def _step_create_abstract_classes(self, concepts):
         """Step 6: Create abstract classes from concepts."""
         abstract_classes = []
         for concept in concepts:
             abstract_classes.append(
-                AbstractClass(extent=list(concept.extent), intent=list(concept.intent))
+                AbstractClass(
+                    extent=list(concept.extent),
+                    intent=list(concept.intent),
+                    relevance_score=concept.relevance_score,  # Include for fusion
+                )
             )
         return abstract_classes
 

@@ -31,7 +31,10 @@ class PlantUMLGenerator:
         """
         self.output_lines = []
 
-        # Build a mapping of child classes to their inherited features
+        # Deduplicate abstract class names
+        abstract_classes = self._deduplicate_abstract_class_names(abstract_classes)
+
+        # Build inheritance map to track what features each class inherits
         inherited_features = self._build_inheritance_map(abstract_classes)
 
         # Start PlantUML
@@ -75,6 +78,57 @@ class PlantUMLGenerator:
             f.write("\n".join(self.output_lines))
 
         return output_path
+
+    def _deduplicate_abstract_class_names(self, abstract_classes: List) -> List:
+        """
+        Merge abstract classes with the same name by fusion based on relevance score.
+        Keep the concept with highest relevance and merge the extents.
+
+        Args:
+            abstract_classes: List of abstract classes (may have duplicate names)
+
+        Returns:
+            List of abstract classes with unique names (duplicates merged)
+        """
+        # Group by name
+        name_groups = {}
+        for abstract_class in abstract_classes:
+            name = abstract_class.suggested_name
+            if name not in name_groups:
+                name_groups[name] = []
+            name_groups[name].append(abstract_class)
+
+        # Merge duplicates
+        merged = []
+        for name, classes in name_groups.items():
+            if len(classes) == 1:
+                # No duplicates
+                merged.append(classes[0])
+            else:
+                # Multiple classes with same name - merge them
+                # Sort by relevance score (highest first)
+                classes.sort(
+                    key=lambda c: getattr(c, "relevance_score", 0), reverse=True
+                )
+
+                # Keep the highest scoring one as base
+                base = classes[0]
+
+                # Merge extents (classes) from all concepts with this name
+                merged_extent = set(base.extent)
+                merged_intent = set(base.intent)
+
+                for cls in classes[1:]:
+                    merged_extent.update(cls.extent)
+                    merged_intent.update(cls.intent)
+
+                # Update the base with merged data
+                base.extent = list(merged_extent)
+                base.intent = list(merged_intent)
+
+                merged.append(base)
+
+        return merged
 
     def _build_inheritance_map(self, abstract_classes: List) -> Dict[str, set]:
         """

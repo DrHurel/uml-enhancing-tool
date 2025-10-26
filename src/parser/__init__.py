@@ -105,7 +105,9 @@ class PlantUMLParser:
             ("composition", "*--"),
             ("aggregation", "--o"),
             ("aggregation", "o--"),
-            ("association", "--"),
+            ("association", "-->"),  # Check --> before --
+            ("association", "<--"),
+            ("association", "--"),  # Generic association (must be last)
         ]:
             if symbol in line:
                 parts = line.split(symbol)
@@ -129,17 +131,18 @@ class PlantUMLParser:
 
                     # Extract target class name, cardinality, and label
                     # Pattern: ["cardinality"] ClassName [: label]
+                    # Handle both: 'ClassName : "label"' and '"card" ClassName : label'
                     target_match = re.match(
-                        r'(?:"([^"]+)"\s+)?(\w+)(?:\s*:\s*(.+))?', target_part
+                        r'(?:"([^"]+)"\s+)?(\w+)(?:\s*:\s*(?:"([^"]+)"|(.+)))?',
+                        target_part,
                     )
                     if target_match:
                         cardinality_target = target_match.group(1)
                         target = target_match.group(2)
-                        label = (
-                            target_match.group(3).strip()
-                            if target_match.group(3)
-                            else None
-                        )
+                        # Label can be quoted (group 3) or unquoted (group 4)
+                        label = target_match.group(3) or target_match.group(4)
+                        if label:
+                            label = label.strip()
                     else:
                         target = target_part.split()[0]
                         cardinality_target = None

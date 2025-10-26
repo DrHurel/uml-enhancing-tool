@@ -1,0 +1,40 @@
+{
+    "technical-stack": {
+        "programming-languages": [
+            "Python"
+        ],
+        "testing-frameworks": [
+            "pytest"
+        ],
+        "version-control": [
+            "Git"
+        ],
+        "ci-cd-tools": [
+            "GitHub Actions"
+        ]
+    },
+    "specifications": {
+        "testing-strategy": "Adopt a test-driven development (TDD) approach to ensure code quality and reliability.",
+        "code-coverage": "At least 90% code coverage for all new features and bug fixes.",
+        "test-types": [
+            "unit tests",
+            "integration tests",
+            "end-to-end tests"
+        ],
+        "reporting": "Generate coverage reports in HTML and XML formats."
+    },
+    "project-structure": {
+        "source-code-directory": "src/",
+        "tests-directory": "tests/",
+        "configuration-files": [
+            "pytest.ini",
+            ".coveragerc"
+        ]
+    },
+    "project": {
+        "name": "Uml enhancing tool",
+        "description": "A tool that implements a pipeline to enhance UML diagrams using FCA & AI techniques.",
+        "features": "the tool take as input a UML diagrams written in plantUML language (it should suport uml with cardinality), then it transforms the diagrams in a knowledge graph to allow analysis using FCA4J. Once concepts are extracted from the knowledge graph, based on relevant of the concepts we create absctract concepts. Those absctract class are then named using a LLM. then as the output we Generate the enhanced plantUML diagrams including the abstract classes.",
+        "control": "We want to be able to evaluate each step of the pipeline to fill a repport so the tool should output in logs or files the result of each step (extraction of knowledge graph, formal concepts, abstract concepts...)"
+    }
+}

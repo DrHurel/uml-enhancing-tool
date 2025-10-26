@@ -1,0 +1,82 @@
+@startuml
+' Test diagram with cardinality relationships
+
+class University {
+  +name: String
+  +address: String
+  +founded: int
+  +enroll()
+  +graduate()
+}
+
+class Department {
+  +name: String
+  +budget: float
+  +headOfDepartment: String
+  +hire()
+  +allocateFunds()
+}
+
+class Professor {
+  +name: String
+  +employeeId: String
+  +salary: float
+  +teach()
+  +research()
+  +publish()
+}
+
+class Student {
+  +name: String
+  +studentId: String
+  +enrollmentDate: String
+  +study()
+  +attendClass()
+  +submitAssignment()
+}
+
+class Course {
+  +courseCode: String
+  +title: String
+  +credits: int
+  +schedule()
+  +evaluate()
+}
+
+class Classroom {
+  +roomNumber: String
+  +capacity: int
+  +hasProjector: boolean
+  +book()
+  +clean()
+}
+
+class Library {
+  +name: String
+  +floors: int
+  +openingHours: String
+  +lendBook()
+  +returnBook()
+  +search()
+}
+
+class Book {
+  +isbn: String
+  +title: String
+  +author: String
+  +publicationYear: int
+  +checkout()
+  +reserve()
+}
+
+' Cardinality relationships
+University "1" -- "1..*" Department : has
+Department "1" -- "0..*" Professor : employs
+Professor "1" -- "1..*" Course : teaches
+Student "1..*" -- "0..*" Course : enrolls in
+Course "1" -- "1" Classroom : held in
+University "1" -- "1..*" Student : enrolls
+Library "1" -- "0..*" Book : contains
+Student "0..*" -- "0..*" Book : borrows
+
+@enduml

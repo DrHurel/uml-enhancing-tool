@@ -1,0 +1,100 @@
+@startuml
+title E-Commerce Model
+
+' === Abstract Classes ===
+class Person {
+  - name : String
+  - age : int
+  + performRole() : void
+}
+
+class Product {
+  - id : String
+  - name : String
+  - price : double
+  + calculateDiscount() : double
+}
+
+' === Concrete Classes ===
+class Customer {
+  - email : String
+  - cart : Cart
+  - orderHistory : OrderHistory
+  + addToCart(product : Product) : void
+  + checkout() : void
+}
+
+class Employee {
+  - position : String
+  - department : Department
+  + assignDepartment(d : Department) : void
+}
+
+class Manager {
+  - bonus : double
+  + approveOrder(order : Order) : void
+}
+
+class Department {
+  - name : String
+  - leader : Employee
+  + setLeader(leader : Employee) : void
+}
+
+class Order {
+  - customer : Customer
+  - products : List<Product>
+  - approved : boolean
+  + getTotal() : double
+  + setApproved(approved : boolean) : void
+}
+
+class Cart {
+  - owner : Customer
+  - items : List<Product>
+  + addItem(p : Product) : void
+  + getItems() : List<Product>
+  + clear() : void
+}
+
+class OrderHistory {
+  - customer : Customer
+  - orders : List<Order>
+  + addOrder(order : Order) : void
+}
+
+class Electronic {
+  - warrantyMonths : int
+  + calculateDiscount() : double
+}
+
+class Book {
+  - author : String
+  + calculateDiscount() : double
+}
+
+class Supplier {
+  - name : String
+  - suppliedProducts : List<Product>
+  + supply(p : Product) : void
+}
+
+' === Inheritance ===
+Person <|-- Customer
+Person <|-- Employee
+Employee <|-- Manager
+Product <|-- Electronic
+Product <|-- Book
+
+' === Associations ===
+Customer --> Cart : owns >
+Customer --> OrderHistory : has >
+OrderHistory --> Order : contains >
+Order --> Product : includes >
+Employee --> Department : belongs to >
+Department --> Employee : leads >
+Supplier --> Product : supplies >
+Order --> Customer : belongs to >
+Cart --> Product : contains >
+
+@enduml

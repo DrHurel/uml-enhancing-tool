@@ -1,0 +1,59 @@
+@startuml
+' Example with shared attributes to demonstrate FCA
+
+class Dog {
+  +name: String
+  +age: int
+  +weight: float
+  +eat()
+  +sleep()
+  +bark()
+}
+
+class Cat {
+  +name: String
+  +age: int
+  +weight: float
+  +eat()
+  +sleep()
+  +meow()
+}
+
+class Bird {
+  +name: String
+  +age: int
+  +wingspan: float
+  +eat()
+  +sleep()
+  +fly()
+}
+
+class Car {
+  +brand: String
+  +speed: int
+  +fuelCapacity: float
+  +start()
+  +stop()
+  +accelerate()
+}
+
+class Motorcycle {
+  +brand: String
+  +speed: int
+  +fuelCapacity: float
+  +start()
+  +stop()
+  +accelerate()
+}
+
+class Truck {
+  +brand: String
+  +speed: int
+  +fuelCapacity: float
+  +cargoCapacity: float
+  +start()
+  +stop()
+  +accelerate()
+}
+
+@enduml

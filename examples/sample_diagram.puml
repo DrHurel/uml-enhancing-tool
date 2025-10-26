@@ -1,0 +1,63 @@
+@startuml
+' Example PlantUML diagram for testing
+
+class Animal {
+  +name: String
+  +age: int
+  +eat()
+  +sleep()
+}
+
+class Dog {
+  +name: String
+  +age: int
+  +breed: String
+  +bark()
+  +eat()
+  +sleep()
+}
+
+class Cat {
+  +name: String
+  +age: int
+  +color: String
+  +meow()
+  +eat()
+  +sleep()
+}
+
+class Bird {
+  +name: String
+  +age: int
+  +wingspan: float
+  +fly()
+  +eat()
+  +sleep()
+}
+
+class Vehicle {
+  +speed: int
+  +fuelType: String
+  +start()
+  +stop()
+}
+
+class Car {
+  +speed: int
+  +fuelType: String
+  +doors: int
+  +start()
+  +stop()
+  +drive()
+}
+
+class Motorcycle {
+  +speed: int
+  +fuelType: String
+  +hasWindshield: boolean
+  +start()
+  +stop()
+  +drive()
+}
+
+@enduml

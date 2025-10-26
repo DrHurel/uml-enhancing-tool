@@ -26,7 +26,7 @@ This tool processes UML diagrams written in PlantUML language (including support
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/DrHurel/uml-enhancing-tool.git
 cd uml-enhancing-tool
 
 # Create a virtual environment

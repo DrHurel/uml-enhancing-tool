@@ -1,100 +1,54 @@
 @startuml
-title E-Commerce Model
+title Diagramme de classes - Système e-commerce (sans classes abstraites)
 
-' === Abstract Classes ===
-class Person {
-  - name : String
-  - age : int
-  + performRole() : void
+' === Classes principales ===
+class Client {
+    - id : int
+    - nom : String
+    - email : String
+    - motDePasse : String
+    - adresse : String
+    + seConnecter() : boolean
+    + seDeconnecter() : void
+    + passerCommande() : Commande
 }
 
-class Product {
-  - id : String
-  - name : String
-  - price : double
-  + calculateDiscount() : double
+class Administrateur {
+    - id : int
+    - nom : String
+    - email : String
+    - motDePasse : String
+    + seConnecter() : boolean
+    + seDeconnecter() : void
+    + ajouterProduit(p : Produit) : void
+    + supprimerProduit(p : Produit) : void
 }
 
-' === Concrete Classes ===
-class Customer {
-  - email : String
-  - cart : Cart
-  - orderHistory : OrderHistory
-  + addToCart(product : Product) : void
-  + checkout() : void
+class Produit {
+    - id : int
+    - nom : String
+    - description : String
+    - prix : double
+    - stock : int
+    + mettreAJourStock(qte : int) : void
 }
 
-class Employee {
-  - position : String
-  - department : Department
-  + assignDepartment(d : Department) : void
+class Categorie {
+    - id : int
+    - nom : String
+    + ajouterProduit(p : Produit) : void
 }
 
-class Manager {
-  - bonus : double
-  + approveOrder(order : Order) : void
+class Panier {
+    - id : int
+    - articles : List<ArticlePanier>
+    + ajouterProduit(p : Produit, qte : int) : void
+    + supprimerProduit(p : Produit) : void
+    + calculerTotal() : double
 }
 
-class Department {
-  - name : String
-  - leader : Employee
-  + setLeader(leader : Employee) : void
+class ArticlePanier {
+    - produit : Produit
+    - quantite : int
+    + getSousTotal() : double
 }
-
-class Order {
-  - customer : Customer
-  - products : List<Product>
-  - approved : boolean
-  + getTotal() : double
-  + setApproved(approved : boolean) : void
-}
-
-class Cart {
-  - owner : Customer
-  - items : List<Product>
-  + addItem(p : Product) : void
-  + getItems() : List<Product>
-  + clear() : void
-}
-
-class OrderHistory {
-  - customer : Customer
-  - orders : List<Order>
-  + addOrder(order : Order) : void
-}
-
-class Electronic {
-  - warrantyMonths : int
-  + calculateDiscount() : double
-}
-
-class Book {
-  - author : String
-  + calculateDiscount() : double
-}
-
-class Supplier {
-  - name : String
-  - suppliedProducts : List<Product>
-  + supply(p : Product) : void
-}
-
-' === Inheritance ===
-Person <|-- Customer
-Person <|-- Employee
-Employee <|-- Manager
-Product <|-- Electronic
-Product <|-- Book
-
-' === Associations ===
-Customer --> Cart : owns >
-Customer --> OrderHistory : has >
-OrderHistory --> Order : contains >
-Order --> Product : includes >
-Employee --> Department : belongs to >
-Department --> Employee : leads >
-Supplier --> Product : supplies >
-Order --> Customer : belongs to >
-Cart --> Product : contains >
-
-@enduml

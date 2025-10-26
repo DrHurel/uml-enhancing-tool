@@ -92,10 +92,14 @@ class KnowledgeGraph:
         ]
 
         # Extract all unique attributes AND methods as features
+        # Sanitize feature names to avoid XML parsing issues (< > become &lt; &gt;)
         features = set()
         for node, data in self.graph.nodes(data=True):
             if data.get("type") in ["attribute", "method"]:
-                features.add(data.get("value"))
+                feature = data.get("value")
+                # Replace < and > to avoid XML parsing errors in FCA4J output
+                feature = feature.replace("<", "&lt;").replace(">", "&gt;")
+                features.add(feature)
 
         # Build the formal context
         for cls in classes:
@@ -106,7 +110,10 @@ class KnowledgeGraph:
             for neighbor in self.graph.neighbors(cls):
                 node_data = self.graph.nodes[neighbor]
                 if node_data.get("type") in ["attribute", "method"]:
-                    cls_features.add(node_data.get("value"))
+                    feature = node_data.get("value")
+                    # Sanitize feature name (same as above)
+                    feature = feature.replace("<", "&lt;").replace(">", "&gt;")
+                    cls_features.add(feature)
 
             # Mark presence/absence of each feature
             for feature in features:

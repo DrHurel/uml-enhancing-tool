@@ -70,8 +70,8 @@ load_dotenv()
 @click.option(
     "--min-relevance",
     type=float,
-    default=50.0,
-    help="Minimum relevance score for concepts (default: 50.0)",
+    default=45.0,
+    help="Minimum relevance score for concepts (default: 45.0)",
 )
 @click.option(
     "--min-extent-size",

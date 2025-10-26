@@ -23,7 +23,7 @@ class PipelineConfig:
         llm_provider: str = "openai",
         llm_api_key: Optional[str] = None,
         fca4j_path: str = "fca4j-cli-0.4.4.jar",
-        min_relevance: float = 50.0,
+        min_relevance: float = 45.0,
         min_extent_size: int = 2,
         output_dir: str = "output",
         logs_dir: str = "logs",

@@ -260,7 +260,13 @@ class FCAAnalyzer:
         return concepts
 
     def _calculate_relevance_scores(self):
-        """Calculate relevance scores for concepts."""
+        """Calculate relevance scores for concepts.
+
+        Score formula combines extent size and intent richness:
+        - Base score from intent size (more attributes = more meaningful)
+        - Weighted by extent size (more classes = more valuable abstraction)
+        - Normalized to 0-100 scale
+        """
         if not self.concepts:
             return
 
@@ -268,13 +274,24 @@ class FCAAnalyzer:
         max_intent = max(len(c.intent) for c in self.concepts)
 
         for concept in self.concepts:
-            # Relevance based on extent size and intent size
-            # Concepts with moderate size are more relevant
-            extent_score = len(concept.extent) / max_extent if max_extent > 0 else 0
-            intent_score = len(concept.intent) / max_intent if max_intent > 0 else 0
+            extent_size = len(concept.extent)
+            intent_size = len(concept.intent)
 
-            # Prefer concepts with multiple objects and multiple attributes
-            concept.relevance_score = (extent_score * intent_score) * 100
+            # Intent score: 0-1 based on number of attributes/methods
+            intent_score = intent_size / max_intent if max_intent > 0 else 0
+
+            # Extent score: normalized but with minimum baseline
+            # Even 2 classes sharing 4 attributes is valuable (e.g., User abstraction)
+            extent_score = extent_size / max_extent if max_extent > 0 else 0
+
+            # Boost score for concepts with rich intent (3+ attributes)
+            intent_boost = 1.5 if intent_size >= 3 else 1.0
+
+            # Final score: prioritize intent richness, weighted by extent
+            # Formula: (0.4 * extent + 0.6 * intent) * boost * 100
+            concept.relevance_score = (
+                (0.4 * extent_score + 0.6 * intent_score) * intent_boost * 100
+            )
 
     def filter_relevant_concepts(
         self, min_relevance: float = 50.0, min_extent_size: int = 2

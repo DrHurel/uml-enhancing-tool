@@ -91,21 +91,31 @@ class LLMNamingService:
 
     def _create_naming_prompt(self, abstract_class: AbstractClass) -> str:
         """Create a prompt for the LLM to name the abstract class."""
-        prompt = f"""You are a software architecture expert. Based on the following information about a group of related classes, suggest a concise and meaningful name for an abstract class that would represent their common concept.
+        prompt = f"""You are a software architecture expert specializing in object-oriented design and domain modeling. 
 
-Classes that will inherit from this abstract class:
+Analyze this group of classes that share common features and suggest a meaningful abstract class name that captures their shared concept:
+
+Classes to be abstracted:
 {", ".join(abstract_class.extent)}
 
-Common attributes and features:
-{", ".join(abstract_class.intent)}
+Shared attributes and behaviors:
+{chr(10).join(f"  - {attr}" for attr in abstract_class.intent)}
 
-Provide ONLY the suggested abstract class name (in PascalCase), without any explanation or additional text. The name should be:
-- Concise (1-3 words)
-- Descriptive of the common concept
-- Follow UML/OOP naming conventions
-- Not include the word "Abstract" unless necessary
+Based on the classes and their shared features, identify the SEMANTIC CONCEPT they represent. For example:
+- If classes share authentication fields (email, password, login methods) → name it "User" or "Authenticatable"
+- If classes share identification fields (id, name) → name it "Identifiable" or "Entity"
+- If classes share naming/labeling → name it "Named" or "Labeled"
 
-Suggested name:"""
+Provide ONLY the abstract class name (PascalCase), without any explanation. The name should:
+- Capture the SEMANTIC MEANING of what these classes represent together
+- Be a noun or adjective describing the abstraction (not just attribute names)
+- Be concise (1-2 words preferred)
+- Follow OOP naming conventions
+- NOT include "Abstract" prefix (it will be added automatically)
+
+Your response should be just the class name, nothing else.
+
+Name:"""
 
         return prompt
 
@@ -172,22 +182,56 @@ Suggested name:"""
     def _fallback_naming(self, abstract_class: AbstractClass) -> AbstractClass:
         """
         Fallback naming strategy when LLM is not available.
-        Creates a simple name based on common attributes.
+        Creates a semantic name based on common attributes and class names.
         """
-        if abstract_class.intent:
-            # Use the first common attribute as base for the name
-            base_name = self._sanitize_class_name(abstract_class.intent[0])
-            abstract_class.suggested_name = f"Abstract{base_name}"
-        else:
+        if not abstract_class.intent:
             # Use extent as base
             if len(abstract_class.extent) > 0:
                 base_name = abstract_class.extent[0]
                 abstract_class.suggested_name = f"Abstract{base_name}"
             else:
                 abstract_class.suggested_name = "AbstractBase"
+            abstract_class.confidence = 0.3
+            return abstract_class
+
+        # Analyze intent to determine semantic meaning
+        intent_str = " ".join(abstract_class.intent).lower()
+
+        # Try to identify semantic concepts from the attributes
+        if any(
+            auth in intent_str
+            for auth in [
+                "password",
+                "motdepasse",
+                "email",
+                "login",
+                "seconnecter",
+                "authenticate",
+            ]
+        ):
+            # Authentication/User concept
+            if len(abstract_class.intent) >= 3:
+                abstract_class.suggested_name = "AbstractUser"
+            else:
+                abstract_class.suggested_name = "AbstractAuthenticatable"
+        elif "id :" in intent_str or "id:" in intent_str:
+            # Identifiable entity
+            if any(name in intent_str for name in ["nom", "name", "title", "label"]):
+                abstract_class.suggested_name = "AbstractEntity"
+            else:
+                abstract_class.suggested_name = "AbstractIdentifiable"
+        elif any(name in intent_str for name in ["nom :", "name:", "title:", "label:"]):
+            # Named/Labeled concept
+            if "title" in intent_str:
+                abstract_class.suggested_name = "AbstractTitled"
+            else:
+                abstract_class.suggested_name = "AbstractNamed"
+        else:
+            # Generic fallback: use first attribute name
+            base_name = self._sanitize_class_name(abstract_class.intent[0])
+            abstract_class.suggested_name = f"Abstract{base_name}"
 
         abstract_class.confidence = 0.5  # Lower confidence for fallback naming
-
         return abstract_class
 
     def batch_name_abstract_classes(
